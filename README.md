@@ -1,5 +1,15 @@
 # sms
-golang sms library, decode/encode smpp3.4/cmpp3.4/sgip1.2/smgp3.0
+golang sms library.
+
+## support decode/encode protocols
+
+- cmpp3.0 **working**
+
+**TO BE DONE**
+
+- ~~smpp3.4~~
+- ~~sgip1.2~~
+- ~~smgp3.0~~
 
 # license
 
