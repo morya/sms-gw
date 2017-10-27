@@ -2,11 +2,10 @@ package session
 
 import (
 	"bufio"
+	"fmt"
 	"net"
-	"sync"
 
-	"github.com/morya/utils/log"
-
+	"github.com/morya/sms/options"
 	_ "github.com/morya/sms/protocol/cmpp30"
 	"github.com/morya/sms/protocol/unified"
 )
@@ -19,14 +18,11 @@ const (
 )
 
 type Conn struct {
-	wg      *sync.WaitGroup
+	opt *options.Options
+
 	coder   unified.Coder
 	sock    net.Conn
 	tcpMode ConnMode
-
-	Account    string
-	Password   string
-	RemoteAddr string
 
 	writer *bufio.Writer
 	reader *bufio.Reader
@@ -35,20 +31,22 @@ type Conn struct {
 	chanMsgRecv chan interface{}
 }
 
-func NewConn(account, pswd, remote string) (*Conn, error) {
-	log.Infof("sysid = %v, pswd = %v, remote= %v", account, pswd, remote)
+func NewConn(opt *options.Options, codername string) (*Conn, error) {
 
-	sock, err := net.Dial("tcp", remote)
+	sock, err := net.Dial("tcp", opt.RemoteAddr)
 	if err != nil {
 		return nil, err
 	}
 
+	var coder = unified.GetCoder(codername)
+	if coder == nil {
+		return nil, fmt.Errorf("coder not found name=[%s]", codername)
+	}
+
 	c := &Conn{
-		coder:      unified.GetCoder("cmpp"),
-		sock:       sock,
-		Account:    account,
-		Password:   pswd,
-		RemoteAddr: remote,
+		opt:   opt,
+		coder: coder,
+		sock:  sock,
 
 		writer: bufio.NewWriter(sock),
 		reader: bufio.NewReader(sock),

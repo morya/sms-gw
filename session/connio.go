@@ -33,10 +33,10 @@ func (c *Conn) Loop() {
 }
 
 func (c *Conn) DoLogin(ctx context.Context) {
-	log.Infof("before send login msg")
+	log.Debugf("before send login msg")
 	time.Sleep(time.Millisecond * 100)
 
-	var bind = &unified.MsgBindReq{Account: c.Account, Password: c.Password}
+	var bind = &unified.MsgBindReq{Account: c.opt.Account, Password: c.opt.Password}
 	data, err := c.coder.Encode(bind)
 	if err != nil {
 		ctx.Done()
@@ -55,7 +55,7 @@ func (c *Conn) HeartBeatLoop(ctx context.Context) {
 		case <-ctx.Done():
 			return
 
-		case <-time.After(time.Second * 2):
+		case <-time.After(time.Second * 4):
 			var hb = &unified.MsgHeartBeat{}
 			data, err := c.coder.Encode(hb)
 			if err != nil {
@@ -86,7 +86,7 @@ func (c *Conn) RecvLoop(ctx context.Context, cancel context.CancelFunc) {
 			log.Errorf("decode remote msg failed, %v", err)
 			return
 		}
-		log.Infof("got msg %#v", msg)
+		log.Debugf("got msg %#v", msg)
 	}
 }
 
@@ -104,8 +104,9 @@ func (c *Conn) SendLoop(ctx context.Context, cancel context.CancelFunc) {
 
 			if len(data) != n {
 				log.Infof("sent data too short, sent length = %v, real length = %v", n, len(data))
-				c.writer.Flush()
 			}
+			c.writer.Flush()
+
 		case <-ctx.Done():
 			return
 
