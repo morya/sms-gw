@@ -46,8 +46,8 @@ type CmppMsgSubmitFrontReq struct {
 	FeeUserType       uint8
 	FeeTerminalID     [32]byte
 	FeeTerminalType   uint8
-	TP_Pid            uint8
-	TP_udhi           uint8
+	TPPid             uint8
+	TPudhi            uint8
 	/*
 	   0:ascii
 	   3:sms write SIM card
@@ -75,7 +75,72 @@ type CmppMsgSubmitAck struct {
 type CmppMsgMultiSubmitReq struct {
 }
 
+type CmppMsgDeliverReq struct {
+	CmppMsgHead
+
+	MsgID uint64
+
+	// 目的号码
+	DestID [21]byte
+
+	// 业务标识 数字、字母和符号的组合
+	ServiceID [10]byte
+	TPPid     uint8
+	TPudhi    uint8
+
+	/*
+	 * 0:ascii
+	 * 3: write Sim-sms
+	 * 4: binary sms
+	 * 8: UCS2 coded msg
+	 * 15: GBK coded msg
+	 */
+	MsgFmt             uint8
+	SrcTerminalID      [32]byte
+	SrcTerminalType    uint8
+	RegisteredDelivery uint8 // 是否为状态报告 0:no, 1:yes
+	MsgLength          uint8
+	// 后续字段是变长的
+	// MsgContent []byte
+	// LinkID  [20]byte
+}
+
+type CmppMsgInnerReport struct {
+	MsgID uint64
+	Stat  [7]byte
+}
+
 type CmppMsgHeartBeatAck struct {
 	CmppMsgHead
-	Status byte
+	Status         [7]byte
+	SubmitTime     [10]byte
+	DoneTime       [10]byte
+	DestTerminalID [21]byte
+	SMSCSequence   uint32
+}
+
+const (
+	CMPP_STAT_Delivered      = "DELIVRD"
+	CMPP_STAT_Expired        = "EXPIRED"
+	CMPP_STAT_Deleted        = "DELETED"
+	CMPP_STAT_DUndeliverable = "UNDELIV"
+	CMPP_STAT_Accepted       = "ACCEPTD"
+	CMPP_STAT_Unknown        = "UNKNOWN"
+	CMPP_STAT_Rejected       = "REJECTED"
+
+	// smsc 不返回响应消息时的状态报告 "MA:xxxx"
+	CMPP_STAT_SmscNoAck = `MA:\w{4}`
+	// smsc 返回错误应答时的状态报告 "MB:xxxx" xxxx是错误码
+	CMPP_STAT_SmscAckErr = `MB:\w{4}`
+
+	// SCP 不返回响应消息的状态报告
+	CMPP_STAT_ScpNoAck = `CA:\w{4}`
+	// SCP 返回错误应答时的状态报告
+	CMPP_STAT_ScpAckErr = `CB:\w{4}`
+)
+
+type CmppMsgDeliverAck struct {
+	MsgID uint64
+
+	Result uint32
 }

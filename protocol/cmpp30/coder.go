@@ -11,14 +11,17 @@ import (
 	"time"
 
 	"github.com/morya/sms/protocol/unified"
+	"github.com/morya/utils/log"
 )
 
 // DEBUG debug switch
-var DEBUG bool = false
+var DEBUG = false
 
+// Coder implements unified.Coder interface
 type Coder struct {
 }
 
+// Decode decodes msgs according to msg command ID
 func (c *Coder) Decode(data []byte) (v interface{}, err error) {
 	r := bytes.NewBuffer(data)
 	var head = &CmppMsgHead{}
@@ -34,22 +37,39 @@ func (c *Coder) Decode(data []byte) (v interface{}, err error) {
 
 	switch head.CmdID {
 	case CMPP_CMD_BindReq:
-		v, err = c.decodeBindReq(data)
-
+		return c.decodeBindReq(data)
 	case CMPP_CMD_BindAck:
-		v, err = c.decodeBindAck(data)
-
+		return c.decodeBindAck(data)
+	case CMPP_CMD_ActiveTestReq:
+		return c.decodeHeartBeatReq(data)
 	case CMPP_CMD_ActiveTestAck:
-		v, err = c.decodeHeartBeatAck(data)
-
+		return c.decodeHeartBeatAck(data)
+	case CMPP_CMD_DeliverReq:
+		return c.decodeDeliverReq(data)
 	case CMPP_CMD_SubmitReq:
-		v, err = c.decodeSubmitReq(data)
+		return c.decodeSubmitReq(data)
 
 	default:
 		err = fmt.Errorf("cmd not supported %v", head.CmdID)
 	}
 
 	return
+}
+
+// Encode encode msg according to msg type
+func (c *Coder) Encode(m interface{}) ([]byte, error) {
+	switch msg := m.(type) {
+	case *unified.MsgBindReq:
+		return c.encodeBindReq(msg)
+	case *unified.MsgHeartBeat:
+		return c.encodeHeartBeat(msg)
+	case *unified.MsgSubmitReq:
+		return c.encodeSubmit(msg)
+	case *unified.MsgDeliverReq:
+		return c.encodeDeliverReq(msg)
+	}
+
+	return []byte{}, fmt.Errorf("not supported msg %v", m)
 }
 
 func (c *Coder) decodeBindReq(data []byte) (v interface{}, err error) {
@@ -79,6 +99,19 @@ func (c *Coder) decodeBindAck(data []byte) (v interface{}, err error) {
 	return dstMsg, err
 }
 
+func (c *Coder) decodeHeartBeatReq(data []byte) (v interface{}, err error) {
+	var dstMsg = &unified.MsgHeartBeat{}
+	var cmppMsg = &CmppMsgHead{}
+	r := bytes.NewBuffer(data)
+
+	binary.Read(r, binary.BigEndian, cmppMsg)
+	dstMsg.Length = cmppMsg.Length // just record this, useless
+	dstMsg.CmdID = unified.CMD_HEARTBEAT_REQ
+	dstMsg.Seq = cmppMsg.Seq
+
+	return dstMsg, err
+}
+
 func (c *Coder) decodeHeartBeatAck(data []byte) (v interface{}, err error) {
 	var dstMsg = &unified.MsgHeartBeat{}
 	var cmppMsg = &CmppMsgHeartBeatAck{}
@@ -91,6 +124,12 @@ func (c *Coder) decodeHeartBeatAck(data []byte) (v interface{}, err error) {
 
 	return dstMsg, err
 }
+
+func (c *Coder) decodeDeliverReq(data []byte) (v interface{}, err error) {
+	log.Warn("decodeDeliverReq not implemented")
+	return nil, nil
+}
+
 func (c *Coder) decodeSubmitReq(data []byte) (v interface{}, err error) {
 	var dstMsg = &unified.MsgSubmitReq{}
 	var cmppFront = &CmppMsgSubmitFrontReq{}
@@ -106,23 +145,6 @@ func (c *Coder) decodeSubmitReq(data []byte) (v interface{}, err error) {
 	// dstMsg.DstAddr =  string(cmppFront.DestUserCount)
 
 	return dstMsg, err
-}
-
-func (c *Coder) Encode(m interface{}) ([]byte, error) {
-	switch msg := m.(type) {
-	case *unified.MsgBindReq:
-		// log.Println("marshal bind req ", msg)
-		return c.encodeBindReq(msg)
-
-	case *unified.MsgHeartBeat:
-		return c.encodeHeartBeat(msg)
-
-	case *unified.MsgSubmitReq:
-		// log.Println("submit", msg)
-		return c.encodeSubmit(msg)
-	}
-
-	return []byte{}, fmt.Errorf("not supported msg %v", m)
 }
 
 func getAuthChecksum(account, pswd string, timestamp []byte, checksum []byte) {
@@ -191,6 +213,10 @@ func (c *Coder) encodeHeartBeat(msg *unified.MsgHeartBeat) ([]byte, error) {
 	binary.Write(buff, binary.BigEndian, hb)
 
 	return buff.Bytes(), nil
+}
+
+func (c *Coder) encodeDeliverReq(msg *unified.MsgDeliverReq) ([]byte, error) {
+	return []byte("ABC"), nil
 }
 
 func (c *Coder) encodeSubmit(msg *unified.MsgSubmitReq) ([]byte, error) {

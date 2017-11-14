@@ -4,6 +4,7 @@ import (
 	"sync"
 )
 
+// simple go-routine safe "set" struct
 type set struct {
 	lock     sync.Mutex
 	innerMap map[int]uint8

@@ -1,5 +1,7 @@
 # my binary
 apps/apps
+apps/sp/sp
+apps/spbenchlink/spbenchlink
 
 # Binaries for programs and plugins
 *.exe

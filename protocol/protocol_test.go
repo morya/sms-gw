@@ -3,8 +3,8 @@ package protocol
 import (
 	"testing"
 
-	"github.com/morya/utils/log"
 	"github.com/morya/sms/protocol/unified"
+	"github.com/morya/utils/log"
 )
 
 func init() {
@@ -68,6 +68,40 @@ func TestEncodeSubmitReq(t *testing.T) {
 	}
 
 	newmsg, ok := v.(*unified.MsgSubmitReq)
+	if !ok {
+		t.Errorf("return msg with wrong type, %T", v)
+	}
+	if newmsg.Seq != 15 {
+		t.Errorf("seq convert fail")
+		return
+	}
+
+	if newmsg.Length == 0 {
+		t.Errorf("length convert fail")
+		return
+	}
+}
+
+func TestEncodeDeliverReq(t *testing.T) {
+	var coder = unified.GetCoder("cmpp")
+	if coder == nil {
+		t.Errorf("no coder named %v", "cmpp")
+		return
+	}
+
+	var m = &unified.MsgDeliverReq{}
+	m.Seq = 15
+	data, err := coder.Encode(m)
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+
+	v, err := coder.Decode(data)
+	if err != nil {
+		t.Error(err)
+	}
+
+	newmsg, ok := v.(*unified.MsgDeliverReq)
 	if !ok {
 		t.Errorf("return msg with wrong type, %T", v)
 	}

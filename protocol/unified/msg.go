@@ -37,8 +37,21 @@ type MsgSubmitReq struct {
 }
 
 type MsgSubmitAck struct {
-	MsgID [8]byte
+	MsgHead
+	MsgID [8]byte // used in submit
 }
 
 type MsgMultiSubmitReq struct {
+	MsgHead
+}
+
+type MsgDeliverReq struct {
+	MsgHead
+	MsgID [8]byte
+}
+
+type MsgDeliverAck struct {
+	MsgHead
+	MsgID  [8]byte
+	Result uint32
 }

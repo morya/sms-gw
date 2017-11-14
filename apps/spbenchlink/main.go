@@ -12,7 +12,7 @@ var (
 	flagAccount    = flag.String("account", "sp", "account name")
 	flagPassword   = flag.String("password", "", "account password")
 	flagRemoteAddr = flag.String("remoteaddr", "127.0.0.1:7890", "socket address to remote")
-	flagConcurrent = flag.Int("concurrent", 100, "concurrent connections to make")
+	flagConcurrent = flag.Int("concurrent", 1, "concurrent connections to make")
 
 	flagLogLevel = flag.String("loglevel", "INFO", "set log level")
 )
