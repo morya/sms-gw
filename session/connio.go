@@ -103,7 +103,9 @@ func (c *Conn) SendLoop(ctx context.Context, cancel context.CancelFunc) {
 			}
 
 			if len(data) != n {
+				cancel()
 				log.Infof("sent data too short, sent length = %v, real length = %v", n, len(data))
+				return
 			}
 			c.writer.Flush()
 
