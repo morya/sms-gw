@@ -1,7 +1,7 @@
 package cmpp30
 
 import (
-	"github.com/morya/sms/protocol/unified"
+	"github.com/morya/sms-gw/protocol/unified"
 )
 
 var c = &Coder{}

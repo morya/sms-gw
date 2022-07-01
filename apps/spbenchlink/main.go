@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 
-	"github.com/morya/sms/options"
-	"github.com/morya/sms/session"
-	"github.com/morya/utils/log"
+	options "github.com/morya/sms-gw/options"
+	session "github.com/morya/sms-gw/session"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -17,18 +17,11 @@ var (
 	flagLogLevel = flag.String("loglevel", "INFO", "set log level")
 )
 
-func init() {
-	flag.Parse()
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	log.SetLevelString(*flagLogLevel)
-}
-
 type App struct {
 	opt *options.Options
 }
 
 func (a *App) Main() {
-
 	c, err := session.NewConn(a.opt, "cmpp")
 	if err != nil {
 		log.Error(err)

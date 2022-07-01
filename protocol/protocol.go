@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"net"
 
-	_ "github.com/morya/sms/protocol/cmpp30" // plugin like inner package
-	_ "github.com/morya/sms/protocol/sgip12" // plugin like inner package
-	_ "github.com/morya/sms/protocol/smpp34" // plugin like inner package
+	_ "github.com/morya/sms-gw/protocol/cmpp30" // plugin like inner package
+	_ "github.com/morya/sms-gw/protocol/sgip12" // plugin like inner package
+	_ "github.com/morya/sms-gw/protocol/smpp34" // plugin like inner package
 
-	"github.com/morya/utils/log"
-	"github.com/morya/sms/protocol/unified"
+	"github.com/morya/sms-gw/protocol/unified"
+	"github.com/sirupsen/logrus"
 )
 
 func Test(account, pswd, remote string) (err error) {
@@ -28,7 +28,7 @@ func Test(account, pswd, remote string) (err error) {
 		return
 	}
 
-	log.Info("encode result\n", hex.Dump(data))
+	logrus.Debug("encode result", hex.Dump(data))
 	return
 }
 
@@ -46,7 +46,7 @@ func Run(account, pswd, remote string) (err error) {
 		return
 	}
 
-	log.Info("encode result\n", hex.Dump(data))
+	logrus.Debug("encode result", hex.Dump(data))
 	c, err := net.Dial("tcp", remote)
 	if err != nil {
 		return
@@ -63,6 +63,6 @@ func Run(account, pswd, remote string) (err error) {
 	}
 
 	ack, err := coder.Decode(data)
-	log.Infof("decode msg %v, data\n%s", ack, hex.Dump(data))
+	logrus.Debugf("decode msg %v, data\n%s", ack, hex.Dump(data))
 	return
 }

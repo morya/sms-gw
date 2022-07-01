@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/morya/sms/options"
-	_ "github.com/morya/sms/protocol/cmpp30"
-	"github.com/morya/sms/protocol/unified"
+	options "github.com/morya/sms-gw/options"
+	_ "github.com/morya/sms-gw/protocol/cmpp30"
+	"github.com/morya/sms-gw/protocol/unified"
 )
 
 type ConnMode int
@@ -19,6 +19,8 @@ const (
 
 type Conn struct {
 	opt *options.Options
+
+	lastErr error
 
 	coder   unified.Coder
 	sock    net.Conn
@@ -61,7 +63,7 @@ func (c *Conn) Send(data []byte) {
 	c.chanMsgSend <- data
 }
 
-func (c *Conn) Client() {
+func (c *Conn) ClientRun() error {
 	c.tcpMode = CONN_MODE_CLIENT
-	c.Loop()
+	return c.Loop()
 }

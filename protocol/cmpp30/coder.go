@@ -10,7 +10,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/morya/sms/protocol/unified"
+	"github.com/morya/sms-gw/protocol/unified"
 )
 
 // DEBUG debug switch

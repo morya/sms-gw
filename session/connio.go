@@ -3,12 +3,12 @@ package session
 import (
 	"time"
 
-	"github.com/morya/sms/protocol/unified"
-	"github.com/morya/utils/log"
+	"github.com/morya/sms-gw/protocol/unified"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
 
-func (c *Conn) Loop() {
+func (c *Conn) Loop() error {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	switch c.tcpMode {
@@ -19,32 +19,33 @@ func (c *Conn) Loop() {
 	go c.RecvLoop(ctx, cancel)
 	go c.SendLoop(ctx, cancel)
 
-	go func() {
-		select {
-		case <-ctx.Done():
-			func() {
-				defer func() {
-					recover()
-				}()
-				c.sock.Close()
+	func() {
+		func() {
+			defer func() {
+				recover()
 			}()
-		}
+			c.sock.Close()
+		}()
+
+		<-ctx.Done()
 	}()
+
+	return c.lastErr
 }
 
 func (c *Conn) DoLogin(ctx context.Context) {
-	log.Debugf("before send login msg")
+	logrus.Debugf("before send login msg")
 	time.Sleep(time.Millisecond * 100)
 
 	var bind = &unified.MsgBindReq{Account: c.opt.Account, Password: c.opt.Password}
 	data, err := c.coder.Encode(bind)
 	if err != nil {
 		ctx.Done()
-		log.Error(err)
+		logrus.Error(err)
 		return
 	}
 
-	log.Debug("send login msg to remote")
+	logrus.Debug("send login msg to remote")
 	c.Send(data)
 	c.HeartBeatLoop(ctx)
 }
@@ -60,13 +61,13 @@ func (c *Conn) HeartBeatLoop(ctx context.Context) {
 			data, err := c.coder.Encode(hb)
 			if err != nil {
 				ctx.Done()
-				log.Errorf("encode heartbeat msg failed %v", err)
+				logrus.Errorf("encode heartbeat msg failed %v", err)
 				return
 			}
 
 			c.Send(data)
 
-			log.Debug("heartbeat sent")
+			logrus.Debug("heartbeat sent")
 		}
 	}
 }
@@ -76,17 +77,17 @@ func (c *Conn) RecvLoop(ctx context.Context, cancel context.CancelFunc) {
 		data, err := c.coder.NextMsg(c.reader)
 		if err != nil {
 			cancel()
-			log.ErrorError(err)
+			logrus.Error(err)
 			return
 		}
 
 		msg, err := c.coder.Decode(data)
 		if err != nil {
 			cancel()
-			log.Errorf("decode remote msg failed, %v", err)
+			logrus.Errorf("decode remote msg failed, %v", err)
 			return
 		}
-		log.Debugf("got msg %#v", msg)
+		logrus.Debugf("got msg %#v", msg)
 	}
 }
 
@@ -98,12 +99,12 @@ func (c *Conn) SendLoop(ctx context.Context, cancel context.CancelFunc) {
 
 			if err != nil {
 				cancel()
-				log.InfoError(err, "send data failed")
+				logrus.Info(err, "send data failed")
 				return
 			}
 
 			if len(data) != n {
-				log.Infof("sent data too short, sent length = %v, real length = %v", n, len(data))
+				logrus.Infof("sent data too short, sent length = %v, real length = %v", n, len(data))
 			}
 			c.writer.Flush()
 

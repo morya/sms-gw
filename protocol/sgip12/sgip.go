@@ -3,7 +3,7 @@ package sgip12
 import (
 	"io"
 
-	"github.com/morya/sms/protocol/unified"
+	"github.com/morya/sms-gw/protocol/unified"
 )
 
 var c = &Coder{}

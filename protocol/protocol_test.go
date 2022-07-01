@@ -3,13 +3,8 @@ package protocol
 import (
 	"testing"
 
-	"github.com/morya/utils/log"
-	"github.com/morya/sms/protocol/unified"
+	"github.com/morya/sms-gw/protocol/unified"
 )
-
-func init() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-}
 
 func TestEncodeBindReq(t *testing.T) {
 	var account, pswd string
@@ -45,7 +40,6 @@ func TestEncodeBindReq(t *testing.T) {
 		t.Errorf("length convert fail")
 		return
 	}
-	return
 }
 
 func TestEncodeSubmitReq(t *testing.T) {
