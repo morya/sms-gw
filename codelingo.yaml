@@ -1,3 +1,4 @@
 tenets:
 - import: codelingo/effective-go
+- import: codelingo/go/ticker-in-for-select
 - import: codelingo/code-review-comments
