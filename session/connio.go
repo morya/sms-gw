@@ -51,12 +51,13 @@ func (c *Conn) DoLogin(ctx context.Context) {
 }
 
 func (c *Conn) HeartBeatLoop(ctx context.Context) {
+	t := time.NewTicker(time.Second * 5)
 	for {
 		select {
 		case <-ctx.Done():
 			return
 
-		case <-time.After(time.Second * 4):
+		case <-t.C:
 			var hb = &unified.MsgHeartBeat{}
 			data, err := c.coder.Encode(hb)
 			if err != nil {
