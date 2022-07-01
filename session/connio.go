@@ -1,11 +1,11 @@
 package session
 
 import (
+	"context"
 	"time"
 
 	"github.com/morya/sms-gw/protocol/unified"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 )
 
 func (c *Conn) Loop() error {
